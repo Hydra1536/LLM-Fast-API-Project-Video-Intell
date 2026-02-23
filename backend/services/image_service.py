@@ -8,7 +8,7 @@ from io import BytesIO
 # load_dotenv()
 
 HF_TOKEN = os.getenv("HF_API_TOKEN")
-print("HF API Token:", HF_TOKEN)
+# print("HF API Token:", HF_TOKEN)
 # MODEL_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 
 API_URL = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0"
