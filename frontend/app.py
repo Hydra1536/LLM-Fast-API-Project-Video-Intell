@@ -4,7 +4,7 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-BACKEND_URL = "http://127.0.0.1:8000/analyze"
+BACKEND_URL = "https://llm-fast-api-project-video-intell.onrender.com/analyze"
 
 st.set_page_config(
     page_title="Video Intelligence Studio",
