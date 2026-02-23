@@ -8,5 +8,5 @@ tqdm
 google-genai
 requests
 Pillow
-easyocr
-torch
+# easyocr
+# torch
