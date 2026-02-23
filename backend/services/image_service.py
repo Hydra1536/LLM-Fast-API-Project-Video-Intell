@@ -12,10 +12,7 @@ HF_TOKEN = os.getenv("HF_API_TOKEN")
 # MODEL_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 
 API_URL = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0"
-headers = {
-    "Authorization": f"Bearer {HF_TOKEN}",
-    "Content-Type": "application/json"
-}
+headers = {"Authorization": f"Bearer {HF_TOKEN}", "Content-Type": "application/json"}
 
 
 def get_aspect_ratio(platform):
@@ -42,10 +39,7 @@ Scene inspired by: {caption_text}
 
     try:
         response = requests.post(
-            API_URL,
-            headers=headers,
-            json={"inputs": prompt},
-            timeout=120
+            API_URL, headers=headers, json={"inputs": prompt}, timeout=120
         )
 
         if response.status_code != 200:
@@ -76,9 +70,6 @@ def generate_thematic_images(captions, platform):
         img_base64 = generate_image_from_caption(caption, platform)
 
         if img_base64:
-            results.append({
-                "image": img_base64,
-                "caption": caption
-            })
+            results.append({"image": img_base64, "caption": caption})
 
     return results

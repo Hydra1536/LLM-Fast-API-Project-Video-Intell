@@ -1,7 +1,6 @@
 import os
 import cv2
 import uuid
-import shutil
 
 ALLOWED_EXTENSIONS = {".mp4", ".mov", ".avi"}
 MAX_DURATION_SECONDS = 120

@@ -1,5 +1,4 @@
 import cv2
-import numpy as np
 import base64
 
 FRAME_SAMPLE_INTERVAL_SECONDS = 0.5
@@ -32,12 +31,12 @@ def crop_to_aspect_ratio(frame, platform: str):
         # Too wide → crop width
         new_width = int(h * target_ratio)
         x1 = (w - new_width) // 2
-        frame = frame[:, x1:x1 + new_width]
+        frame = frame[:, x1 : x1 + new_width]
     else:
         # Too tall → crop height
         new_height = int(w / target_ratio)
         y1 = (h - new_height) // 2
-        frame = frame[y1:y1 + new_height, :]
+        frame = frame[y1 : y1 + new_height, :]
 
     return frame
 

@@ -6,14 +6,12 @@ from io import BytesIO
 
 BACKEND_URL = "https://llm-fast-api-project-video-intell.onrender.com/analyze"
 
-st.set_page_config(
-    page_title="Video Intelligence Studio",
-    layout="wide"
-)
+st.set_page_config(page_title="Video Intelligence Studio", layout="wide")
 
 # ---------------------------
 # Helper Functions
 # ---------------------------
+
 
 def decode_base64_image(base64_string):
     image_bytes = base64.b64decode(base64_string)
@@ -27,7 +25,7 @@ def download_button(image_base64, filename):
         data=image_bytes,
         file_name=filename,
         mime="image/jpeg",
-        use_container_width=True
+        use_container_width=True,
     )
 
 
@@ -45,15 +43,11 @@ st.markdown("---")
 col1, col2 = st.columns([1, 1])
 
 with col1:
-    platform = st.selectbox(
-        "Select Platform",
-        ["youtube", "instagram", "tiktok"]
-    )
+    platform = st.selectbox("Select Platform", ["youtube", "instagram", "tiktok"])
 
 with col2:
     uploaded_file = st.file_uploader(
-        "Upload Video (Max 2 minutes)",
-        type=["mp4", "mov", "avi"]
+        "Upload Video (Max 2 minutes)", type=["mp4", "mov", "avi"]
     )
 
 analyze = st.button("Analyze Video", use_container_width=True)
@@ -65,16 +59,10 @@ st.markdown("---")
 # ---------------------------
 
 if analyze and uploaded_file:
-
     with st.spinner("Analyzing video... This may take 10–20 seconds."):
+        files = {"file": (uploaded_file.name, uploaded_file, uploaded_file.type)}
 
-        files = {
-            "file": (uploaded_file.name, uploaded_file, uploaded_file.type)
-        }
-
-        data = {
-            "platform": platform
-        }
+        data = {"platform": platform}
 
         response = requests.post(BACKEND_URL, files=files, data=data)
 
@@ -115,7 +103,7 @@ if analyze and uploaded_file:
             img = decode_base64_image(thumb)
             with thumb_cols[i % 5]:
                 st.image(img, use_container_width=True)
-                download_button(thumb, f"thumbnail_{i+1}.jpg")
+                download_button(thumb, f"thumbnail_{i + 1}.jpg")
 
         st.markdown("---")
 
@@ -148,7 +136,6 @@ if analyze and uploaded_file:
         # AI Captions (Thematic)
         # ---------------------------
 
-
         st.subheader("🤖 AI Generated Captions")
 
         captions = result.get("captions", [])
@@ -157,7 +144,6 @@ if analyze and uploaded_file:
             st.warning("No captions were generated.")
         else:
             for idx, caption_lines in enumerate(captions[:3]):
-
                 st.markdown(f"### Concept {idx + 1}")
 
                 # Ensure it's a list of 3 lines
@@ -199,7 +185,6 @@ if analyze and uploaded_file:
                     st.error(f"Caption {idx + 1} format invalid.")
 
                 st.markdown("---")
-
 
 
 elif analyze:

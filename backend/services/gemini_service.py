@@ -12,12 +12,12 @@ client = genai.Client(
 # print("Gemini API Key:", client)
 MODEL_NAME = "gemini-2.5-flash-lite"
 
-def generate_platform_captions(platform: str):
 
+def generate_platform_captions(platform: str):
     tone_map = {
         "youtube": "engaging, curiosity-driven, descriptive",
         "instagram": "emotional, aesthetic, trendy",
-        "tiktok": "short, viral, energetic, hook-based"
+        "tiktok": "short, viral, energetic, hook-based",
     }
 
     tone = tone_map.get(platform.lower(), "engaging")

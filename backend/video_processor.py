@@ -1,12 +1,12 @@
 import cv2
 import numpy as np
+
 # import pytesseract
 import easyocr
-
 # pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # Initialize EasyOCR reader once (English only, CPU mode)
-reader = easyocr.Reader(['en'], gpu=False)
+reader = easyocr.Reader(["en"], gpu=False)
 
 FRAME_SAMPLE_INTERVAL_SECONDS = 0.5
 RESIZE_WIDTH = 640
@@ -77,9 +77,7 @@ def calculate_average_motion(video_path, fps):
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
             flow = cv2.calcOpticalFlowFarneback(
-                prev_gray, gray,
-                None,
-                0.5, 3, 15, 3, 5, 1.2, 0
+                prev_gray, gray, None, 0.5, 3, 15, 3, 5, 1.2, 0
             )
 
             magnitude, _ = cv2.cartToPolar(flow[..., 0], flow[..., 1])
