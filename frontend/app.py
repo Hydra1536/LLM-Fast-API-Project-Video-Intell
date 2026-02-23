@@ -66,7 +66,7 @@ st.markdown("---")
 
 if analyze and uploaded_file:
 
-    with st.spinner("Analyzing video... This may take 30–40 seconds."):
+    with st.spinner("Analyzing video... This may take 10–20 seconds."):
 
         files = {
             "file": (uploaded_file.name, uploaded_file, uploaded_file.type)
