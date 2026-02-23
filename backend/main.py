@@ -6,7 +6,7 @@ import shutil
 import os
 import json
 from services.image_service import generate_thematic_images
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from fastapi import Form
 from services.gemini_service import generate_platform_captions
 from utils import (
@@ -23,7 +23,7 @@ from video_processor import (
     calculate_text_presence_ratio
 )
 from thumbnail_engine import extract_top_thumbnails
-load_dotenv()
+# load_dotenv()
 
 app = FastAPI(title="Video Intelligence API")
 
