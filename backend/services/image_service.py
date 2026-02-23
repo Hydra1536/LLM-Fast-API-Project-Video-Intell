@@ -3,9 +3,9 @@ import requests
 import base64
 from PIL import Image
 from io import BytesIO
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
 HF_TOKEN = os.getenv("HF_API_TOKEN")
 print("HF API Token:", HF_TOKEN)

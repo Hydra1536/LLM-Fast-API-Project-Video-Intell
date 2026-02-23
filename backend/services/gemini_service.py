@@ -1,9 +1,9 @@
 import os
 import json
 from google import genai
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
 # IMPORTANT: explicitly set API version
 client = genai.Client(
