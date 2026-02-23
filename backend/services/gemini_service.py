@@ -9,7 +9,7 @@ load_dotenv()
 client = genai.Client(
     api_key=os.getenv("GEMINI_API_KEY"),
 )
-print("Gemini API Key:", client)
+# print("Gemini API Key:", client)
 MODEL_NAME = "gemini-2.5-flash-lite"
 
 def generate_platform_captions(platform: str):
