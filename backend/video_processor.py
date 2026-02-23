@@ -1,7 +1,12 @@
 import cv2
 import numpy as np
-import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+# import pytesseract
+import easyocr
+
+# pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+# Initialize EasyOCR reader once (English only, CPU mode)
+reader = easyocr.Reader(['en'], gpu=False)
 
 FRAME_SAMPLE_INTERVAL_SECONDS = 0.5
 RESIZE_WIDTH = 640
@@ -107,7 +112,7 @@ def calculate_text_presence_ratio(video_path, fps):
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
             try:
-                text = pytesseract.image_to_string(gray)
+                text = reader.image_to_string(gray)
                 if len(text.strip()) > 5:
                     text_frames += 1
             except:
