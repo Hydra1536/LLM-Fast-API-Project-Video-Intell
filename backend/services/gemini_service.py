@@ -1,8 +1,8 @@
 import os
 import json
 from google import genai
-from backend.thumbnail_engine import select_best_3_thumbnails
-from backend.thumbnail_engine import extract_top_thumbnails
+from thumbnail_engine import select_best_3_thumbnails
+from thumbnail_engine import extract_top_thumbnails
 import base64 
 # from dotenv import load_dotenv
 
