@@ -132,6 +132,7 @@ if analyze and uploaded_file:
         #             st.write(line)
 
         #     st.markdown("---")
+        
         # ---------------------------
         # AI Captions (Thematic)
         # ---------------------------
