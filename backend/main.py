@@ -73,7 +73,9 @@ async def analyze_video(file: UploadFile = File(...), platform: str = Form(...))
 
         if captions is None:
             return {
-                "error": "Caption generation failed. Please retry.",
+                "metrics": metrics,
+                "thumbnails": thumbnails,
+                "captions": ["Caption generation failed. Please retry."],
             }
         # elif ai_results is None:
         #     return {
