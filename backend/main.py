@@ -60,7 +60,12 @@ async def analyze_video(file: UploadFile = File(...), platform: str = Form(...))
         text_ratio = calculate_text_presence_ratio(temp_path, fps)
 
         thumbnails = extract_top_thumbnails(temp_path, fps, platform)
-        captions = generate_platform_captions(platform)
+
+        captions = generate_platform_captions(
+            platform=platform,
+            video_path=temp_path,
+            fps=fps,
+        )
         # ai_results = generate_thematic_images(captions, platform)
         metrics = {
             "fps": round(fps, 2),
