@@ -75,7 +75,7 @@ Return ONLY valid JSON like:
                     types.Content(
                         role="user",
                         parts=[
-                            types.Part.from_text(prompt),
+                            types.Part.from_text(text=prompt),
                             image_part,
                         ],
                     )
