@@ -3,6 +3,7 @@ import json
 from google import genai
 from thumbnail_engine import select_best_3_thumbnails
 from thumbnail_engine import extract_top_thumbnails
+from google.genai import types
 import base64 
 # from dotenv import load_dotenv
 
@@ -58,18 +59,31 @@ Return ONLY valid JSON like:
 """
 
         try:
+            # ✅ Convert base64 string → raw bytes
+            image_bytes = base64.b64decode(thumbnail_base64)
+
+            # ✅ Create proper Gemini Part
+            image_part = types.Part.from_bytes(
+                data=image_bytes,
+                mime_type="image/jpeg",
+            )
+
+            # ✅ Proper content format for new SDK
             response = client.models.generate_content(
                 model=MODEL_NAME,
                 contents=[
-                    prompt,
-                    {
-                        "mime_type": "image/jpeg",
-                        "data": thumbnail_base64,
-                    },
+                    types.Content(
+                        role="user",
+                        parts=[
+                            types.Part.from_text(prompt),
+                            image_part,
+                        ],
+                    )
                 ],
             )
 
             raw_text = response.text.strip()
+
             start = raw_text.find("[")
             end = raw_text.rfind("]") + 1
             json_text = raw_text[start:end]
@@ -79,12 +93,11 @@ Return ONLY valid JSON like:
             if isinstance(captions, list) and len(captions) == 3:
                 all_captions.append(captions[0])
             else:
-                raise ValueError("Invalid structure")
+                raise ValueError("Invalid caption structure")
 
         except Exception as e:
             print("Gemini Error:", e)
             return None
 
     print("Gemini caption generation complete.")
-
     return all_captions
