@@ -8,5 +8,6 @@ tqdm
 google-genai
 requests
 Pillow
+base64
 # easyocr
 # torch

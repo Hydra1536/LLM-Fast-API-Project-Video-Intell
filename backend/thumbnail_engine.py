@@ -1,5 +1,6 @@
 import cv2
 import base64
+import numpy as np
 
 FRAME_SAMPLE_INTERVAL_SECONDS = 0.5
 RESIZE_WIDTH = 640
@@ -96,3 +97,42 @@ def extract_top_thumbnails(video_path, fps, platform, max_thumbnails=10):
     encoded_images = [encode_image_to_base64(f) for f in selected_frames]
 
     return encoded_images
+
+
+def decode_base64_to_frame(base64_string):
+    img_bytes = base64.b64decode(base64_string)
+    np_arr = np.frombuffer(img_bytes, np.uint8)
+    return cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+
+def thumbnail_quality_score(frame):
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    sharpness = cv2.Laplacian(gray, cv2.CV_64F).var()
+    brightness = np.mean(gray)
+    contrast = gray.std()
+
+    # weighted scoring
+    return sharpness * 0.6 + contrast * 0.3 + brightness * 0.1
+
+
+def select_best_3_thumbnails(initial_10_base64):
+    print("Selecting best 3 thumbnails from top 10...")
+
+    scored = []
+
+    for idx, b64 in enumerate(initial_10_base64):
+        frame = decode_base64_to_frame(b64)
+        score = thumbnail_quality_score(frame)
+
+        print(f"Thumbnail {idx+1} score: {score}")
+
+        scored.append((score, b64))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+
+    best_3 = [item[1] for item in scored[:3]]
+
+    print("Top 3 thumbnails selected.")
+
+    return best_3
