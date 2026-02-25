@@ -33,7 +33,7 @@ The project contains:
     - YouTube `16:9`
     - Instagram `1:1`
     - TikTok `9:16`
-- AI caption generation with Gemini (`3 concepts x 3 lines`)
+- AI caption generation with Gemini using **best 3 thumbnails selected from initial top 10**
 
 ## Project Structure
 
@@ -60,28 +60,86 @@ video-intel/
 2. Backend stores the file in a temporary folder.
 3. Backend validates extension, size, and duration.
 4. Processing pipeline computes metrics and selects the top 10 best frames as thumbnails.
-5. Backend calls Gemini for 3 structured caption concepts.
-6. API returns JSON with `metrics`, `thumbnails` (base64 JPGs), and `captions`.
+5. Caption pipeline re-scores those 10 thumbnails, selects the best 3, and sends those 3 images to Gemini.
+6. API returns JSON with `metrics`, `thumbnails` (top 10, base64 JPGs), and `captions`.
 7. Frontend renders metrics, previews thumbnails, and enables downloads.
 
-## Caption Generation Flow (Gemini)
+## Detailed Pipeline (How Initial 10 Thumbnails Are Processed)
 
-1. Backend receives the selected platform (`youtube`, `instagram`, or `tiktok`).
-2. It maps platform to a tone style:
+Source: `backend/thumbnail_engine.py`
+
+1. Video is sampled every `0.5s` (`FRAME_SAMPLE_INTERVAL_SECONDS`).
+2. Each sampled frame is resized to width `<= 640` (`RESIZE_WIDTH`) for faster scoring.
+3. Each sampled frame gets a sharpness score:
+   - `sharpness = var(Laplacian(gray_frame))`
+4. Frames are sorted by sharpness in descending order.
+5. Duplicate-like frames are removed using a lightweight hash (`hash(frame.tobytes()[:1000])`).
+6. Remaining frames are center-cropped by platform ratio:
+   - YouTube `16:9`
+   - Instagram `1:1`
+   - TikTok `9:16`
+7. Top 10 cropped frames are encoded to base64 and returned as `thumbnails`.
+
+## Caption Generation Flow (Updated Algorithm)
+
+Source: `backend/services/gemini_service.py` and `backend/thumbnail_engine.py`
+
+1. Backend maps platform to tone:
    - YouTube: engaging, curiosity-driven, descriptive
    - Instagram: emotional, aesthetic, trendy
    - TikTok: short, viral, energetic, hook-based
-3. Backend builds a strict prompt asking Gemini for:
-   - exactly 3 different caption concepts
-   - exactly 3 short lines per concept
-   - no hashtags
-   - JSON-only output format
-4. Gemini returns text; backend extracts the JSON block and parses it.
-5. Backend validates structure (`3 concepts x 3 lines`) and returns captions.
+2. Backend gets initial 10 thumbnails from `extract_top_thumbnails(...)`.
+3. It re-scores the 10 thumbnails with quality scoring:
+   - `quality = 0.6 * sharpness + 0.3 * contrast + 0.1 * brightness`
+   - `sharpness = var(Laplacian(gray))`
+   - `contrast = std(gray)`
+   - `brightness = mean(gray)`
+4. Top 3 thumbnails by quality score are selected (`select_best_3_thumbnails`).
+5. Each selected thumbnail is sent to Gemini (`gemini-2.5-flash-lite`) with an image + prompt.
+6. For each image, Gemini is asked for 3 caption concepts (3 lines each, JSON only, no hashtags).
+7. Backend parses Gemini output and currently takes the first concept from each image result.
+8. Final API output is 3 caption blocks, each block containing 3 lines.
 
-Current behavior note:
-- The top 10 selected thumbnail frames are used for display/download.
-- These selected frames are **not passed to Gemini** in the current implementation; caption generation is platform/tone-driven only.
+## Metrics: How Every Metric Is Calculated
+
+Source: `backend/video_processor.py` and `backend/utils.py`
+
+- `fps`:
+  - Extracted from OpenCV metadata (`cv2.CAP_PROP_FPS`).
+- `total_frames`:
+  - Extracted from OpenCV metadata (`cv2.CAP_PROP_FRAME_COUNT`).
+- `duration_seconds`:
+  - `duration = total_frames / fps`.
+- `hard_cut_count`:
+  - Sample every `0.5s`.
+  - Convert frame to grayscale.
+  - Compute normalized 256-bin histogram.
+  - Compare current histogram with previous histogram using chi-square (`cv2.HISTCMP_CHISQR`).
+  - If difference `> 35`, increment hard-cut count.
+- `avg_motion_magnitude`:
+  - Sample every `0.5s`.
+  - Compute dense optical flow using Farneback (`cv2.calcOpticalFlowFarneback`).
+  - Convert flow vectors to magnitude and take mean magnitude per sampled step.
+  - Final value = mean of all sampled-step mean magnitudes.
+- `text_present_ratio`:
+  - Sample every `0.5s`.
+  - Run OCR with Tesseract (`pytesseract.image_to_string`) on grayscale frame.
+  - Mark frame as text-present if trimmed OCR output length is `> 5`.
+  - Ratio = `text_frames / sampled_frames`.
+
+## Which Part Is FastAPI vs LLM/AI
+
+- FastAPI / deterministic backend logic:
+  - Upload API (`/analyze`), request validation, temporary file handling
+  - Video validation (extension, file size, max duration)
+  - Metric computation
+  - Thumbnail extraction (sample, score, dedupe, crop, encode)
+  - Top-10 to top-3 ranking pipeline
+  - Prompt creation, response parsing, JSON response formatting
+- LLM / AI logic:
+  - Gemini generates caption text from selected thumbnail image + platform tone prompt
+- OCR AI component:
+  - Tesseract OCR estimates text presence in video frames
 
 ## Prerequisites
 
@@ -98,20 +156,6 @@ pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tessera
 ```
 
 If Tesseract is installed elsewhere, update this path.
-
-## Environment Variables
-
-Set these before running backend:
-
-- `GEMINI_API_KEY` (required for caption generation)
-- `HF_API_TOKEN` (only needed if you re-enable image generation from `image_service.py`)
-
-Windows PowerShell example:
-
-```powershell
-$env:GEMINI_API_KEY = "your_gemini_key"
-$env:HF_API_TOKEN = "your_hf_token"
-```
 
 ## Local Setup
 
@@ -141,19 +185,21 @@ streamlit run app.py
 
 ## Tech Stack
 
-- Backend: FastAPI, OpenCV, NumPy, pytesseract, Google GenAI SDK
+- Backend API: FastAPI, Uvicorn, python-multipart
+- Video processing: OpenCV, NumPy
+- OCR: pytesseract + local Tesseract binary
+- LLM integration: Google GenAI SDK
 - Frontend: Streamlit, Requests, Pillow
-- AI Services:
-  - Gemini caption generation (active)
-  - Hugging Face image generation service (`image_service.py`) is available in code but currently not shown in app flow
+- AI models and purpose:
+  - `gemini-2.5-flash-lite`: image-aware caption generation
+  - `stabilityai/stable-diffusion-xl-base-1.0` (via `image_service.py`, optional): image generation from captions (currently not active in UI flow)
 
 ## Current Limitations
 
 - OCR path is hardcoded to a Windows location.
-- CORS is fully open (`*`) for ease of integration.
 - `image_service.py` based AI-image feature is currently not shown in the app because the free tier for image generation is exhausted.
 - Gemini caption feature is present in code, but caption output may be missing when Gemini free-tier quota is exhausted.
-- Captions are generating based on selected platform tones, not by selected thumbnails.
+- Caption flow recomputes thumbnail extraction inside Gemini service, so extraction currently happens twice.
 - Frontend uses a fixed backend URL by default.
 
 ## Deployment Notes
@@ -163,5 +209,3 @@ streamlit run app.py
   - OpenCV system dependencies,
   - Tesseract binary and configured path,
   - environment variables for API keys.
-
-
