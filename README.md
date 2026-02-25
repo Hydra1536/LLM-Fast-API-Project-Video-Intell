@@ -80,7 +80,7 @@ Source: `backend/thumbnail_engine.py`
    - TikTok `9:16`
 7. Top 10 cropped frames are encoded to base64 and returned as `thumbnails`.
 
-## Caption Generation Flow (Updated Algorithm)
+## Caption Generation Flow 
 
 Source: `backend/services/gemini_service.py` and `backend/thumbnail_engine.py`
 
@@ -126,20 +126,6 @@ Source: `backend/video_processor.py` and `backend/utils.py`
   - Run OCR with Tesseract (`pytesseract.image_to_string`) on grayscale frame.
   - Mark frame as text-present if trimmed OCR output length is `> 5`.
   - Ratio = `text_frames / sampled_frames`.
-
-## Which Part Is FastAPI vs LLM/AI
-
-- FastAPI / deterministic backend logic:
-  - Upload API (`/analyze`), request validation, temporary file handling
-  - Video validation (extension, file size, max duration)
-  - Metric computation
-  - Thumbnail extraction (sample, score, dedupe, crop, encode)
-  - Top-10 to top-3 ranking pipeline
-  - Prompt creation, response parsing, JSON response formatting
-- LLM / AI logic:
-  - Gemini generates caption text from selected thumbnail image + platform tone prompt
-- OCR AI component:
-  - Tesseract OCR estimates text presence in video frames
 
 ## Prerequisites
 
