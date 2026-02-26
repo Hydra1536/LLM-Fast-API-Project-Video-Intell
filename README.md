@@ -12,6 +12,7 @@ The project contains:
 ## Live Frontend
 
 - Streamlit app: https://video-intelligence-studio.streamlit.app/
+- YouTube Demo: https://youtu.be/FRjcuVmi3J8
 
 ## Features
 
